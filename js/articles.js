@@ -17,6 +17,13 @@
 
 const ARTICLES = [
   {
+    slug: "wechat-20260223-sd1svfvx2nru",
+    title: "夫妻唯一房产分割困局：除了“卖房平分”，你还有这三条退路",
+    date: "2026-02-23",
+    tag: "债务纠纷",
+    excerpt: "最近在复盘几个家事案件时，我有一个很深的感触：真正让两个人陷入拉锯战的，往往不是感情里的孰是孰非，而是横亘在两人中间的那套唯一房产。",
+  },
+  {
     slug: "juvenile-detention-tianjin-case",
     title: "“免死金牌”失效！天津打响第一枪：未成年人作恶，法律不再“虽迟但无”",
     date: "2026-02-10",
@@ -78,13 +85,17 @@ function renderArticleCards(articles, containerId) {
   `).join('');
 }
 
+function getSortedArticles() {
+  return ARTICLES.slice().sort((a, b) => new Date(b.date) - new Date(a.date));
+}
+
 function loadArticlePreview(containerId, limit) {
-  const articles = ARTICLES.slice(0, limit);
+  const articles = getSortedArticles().slice(0, limit);
   renderArticleCards(articles, containerId);
 }
 
 function loadAllArticles(containerId) {
-  renderArticleCards(ARTICLES, containerId);
+  renderArticleCards(getSortedArticles(), containerId);
 }
 
 /**
