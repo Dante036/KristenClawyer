@@ -445,6 +445,24 @@ a { color: inherit; text-decoration: none; }
   color: var(--ink-light);
   line-height: 1.9;
 }
+.article-page article figure {
+  margin: 32px 0;
+}
+.article-page article img {
+  width: 100%;
+  height: auto;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  box-shadow: 0 16px 36px rgba(44, 34, 28, 0.08);
+  background: var(--white);
+}
+.article-page article figcaption {
+  margin-top: 12px;
+  text-align: center;
+  font-size: 0.82rem;
+  line-height: 1.7;
+  color: var(--ink-muted);
+}
 .article-page article ul,
 .article-page article ol {
   padding-left: 24px;

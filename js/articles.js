@@ -17,6 +17,13 @@
 
 const ARTICLES = [
   {
+    slug: "juvenile-detention-tianjin-case",
+    title: "“免死金牌”失效！天津打响第一枪：未成年人作恶，法律不再“虽迟但无”",
+    date: "2026-02-10",
+    tag: "法律热点",
+    excerpt: "天津一名 15 岁少年连砸多辆豪车并实施盗窃后被行政拘留 9 日。这起案件释放出一个清晰信号：未成年人违法，不再天然“只罚不关”。"
+  },
+  {
     slug: "what-to-do-when-contract-breached",
     title: "合同被违约了，我该怎么办？",
     date: "2026-03-05",
