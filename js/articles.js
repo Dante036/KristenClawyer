@@ -31,6 +31,13 @@ const ARTICLES = [
     excerpt: "对方突然不履行合同，钱打了没收货，货发了没收款——遇到这种情况别慌，小布布带你理清思路。"
   },
   {
+    slug: "payment-order-debt-collection-guide",
+    title: "欠钱不还，申请支付令最快？为什么我反而要劝退？",
+    date: "2026-02-25",
+    tag: "债务纠纷",
+    excerpt: "支付令听起来快、便宜、直接，但它对债务人的状态要求极高。遇到失联、躲债、随时可能转移财产的老赖，盲目申请支付令，往往反而更耽误事。"
+  },
+  {
     slug: "divorce-property-division-guide",
     title: "离婚财产怎么分？这几个问题要搞清楚",
     date: "2026-02-20",
