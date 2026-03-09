@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>陈律文章同步器</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@400;500;600&display=swap" />
+  <link rel="stylesheet" href="/tool/style.css" />
+</head>
+<body>
+  <main class="shell">
+    <section class="hero">
+      <div>
+        <p class="eyebrow">Chen Sync</p>
+        <h1>陈律文章同步器</h1>
+        <p class="subtitle">把公众号文章一键同步到网站，自动抓正文、首图、主要配图，并生成网站文章。</p>
+      </div>
+      <div class="hero-card">
+        <img src="/images/avanta.jpg" alt="小布布头像" class="hero-avatar" />
+        <p class="hero-note">适合非技术使用者，只要粘贴公众号链接就行。</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>同步新文章</h2>
+        <span id="status-pill" class="status-pill">检查环境中</span>
+      </div>
+
+      <form id="sync-form" class="sync-form">
+        <label>
+          <span>公众号链接</span>
+          <input id="url" name="url" type="url" placeholder="https://mp.weixin.qq.com/s/..." required />
+        </label>
+
+        <div class="row">
+          <label>
+            <span>文章标签</span>
+            <input id="tag" name="tag" type="text" placeholder="可留空，系统会自动判断" />
+          </label>
+          <label>
+            <span>自定义 slug</span>
+            <input id="slug" name="slug" type="text" placeholder="可留空，系统自动生成" />
+          </label>
+        </div>
+
+        <div class="tag-hints">
+          <button type="button" data-tag="合同纠纷">合同纠纷</button>
+          <button type="button" data-tag="债务纠纷">债务纠纷</button>
+          <button type="button" data-tag="婚姻家事">婚姻家事</button>
+          <button type="button" data-tag="劳动争议">劳动争议</button>
+          <button type="button" data-tag="法律热点">法律热点</button>
+        </div>
+
+        <div class="submit-actions">
+          <button id="submit-btn" class="submit-btn" type="submit">同步到网站</button>
+          <button id="submit-publish-btn" class="submit-btn publish-now-btn" type="button">同步并发布</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="panel info-grid">
+      <article>
+        <h3>自动完成</h3>
+        <ul>
+          <li>抓正文和发布时间</li>
+          <li>下载首图和主要配图</li>
+          <li>生成文章文件</li>
+          <li>更新网站文章列表</li>
+        </ul>
+      </article>
+      <article>
+        <h3>发布后可查看</h3>
+        <ul>
+          <li>文章详情页预览</li>
+          <li>文章列表页入口</li>
+          <li>本地文件保存位置</li>
+          <li>错误提示和失败原因</li>
+        </ul>
+      </article>
+    </section>
+
+    <section id="result-panel" class="panel result-panel hidden">
+      <div class="panel-head">
+        <h2>同步结果</h2>
+      </div>
+      <div id="result-body"></div>
+    </section>
+  </main>
+  <script src="/tool/app.js"></script>
+</body>
+</html>
