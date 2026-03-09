@@ -39,6 +39,57 @@ excerpt: 一两句摘要
 
 4. 推送到 GitHub，网站自动更新。
 
+## 本地同步公众号文章
+
+给陈律用的本地小工具已经在仓库里：
+
+- 双击运行：`start-wechat-sync-tool.command`
+- Windows 可双击运行：`start-wechat-sync-tool.bat`
+- 打开后访问：`http://127.0.0.1:4318/tool/`
+- 粘贴公众号链接后，可选“同步到网站”或“同步并发布”
+
+如果第一次运行提示缺少 Playwright，请先在仓库根目录执行：
+
+```bash
+npm install playwright
+```
+
+先准备本机私密配置文件：
+
+```bash
+cp wechat-sync.local.env.example wechat-sync.local.env
+```
+
+然后把 `wechat-sync.local.env` 里的 `WECHAT_SYNC_GITHUB_TOKEN` 改成你自己的 GitHub PAT。这个文件已经被忽略，不会提交到仓库。
+
+也可以直接用命令行导入：
+
+```bash
+node tools/wechat-sync/import_wechat_article.js --url "https://mp.weixin.qq.com/s/..."
+```
+
+如果要在网页里直接 `git commit` + `git push`：
+
+- 默认优先使用你电脑里已经配置好的 Git 登录态
+- 如果 `wechat-sync.local.env` 里有 `WECHAT_SYNC_GITHUB_TOKEN`，双击启动时会自动加载
+- 即使仓库当前 `origin` 是 SSH，工具也会在推送时临时改走 HTTPS，不会改写你的远程配置
+
+macOS：
+
+```bash
+cp wechat-sync.local.env.example wechat-sync.local.env
+open -a TextEdit wechat-sync.local.env
+./start-wechat-sync-tool.command
+```
+
+Windows：
+
+```powershell
+copy wechat-sync.local.env.example wechat-sync.local.env
+notepad wechat-sync.local.env
+.\start-wechat-sync-tool.bat
+```
+
 ## 添加微信二维码
 
 把二维码图片保存为 `images/wechat-qr.png`，然后在 `contact.html` 中找到以下注释并取消注释：
