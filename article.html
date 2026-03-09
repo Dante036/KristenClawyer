@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>文章 · 陈律</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="container nav-inner">
+      <a href="index.html" class="logo">陈律<span class="logo-sub"> · 法律服务</span></a>
+      <ul class="nav-links">
+        <li><a href="index.html">首页</a></li>
+        <li><a href="articles.html" class="active">文章</a></li>
+        <li><a href="contact.html">联系</a></li>
+      </ul>
+      <button class="hamburger" id="hamburger" aria-label="菜单">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <main class="article-page container">
+    <a href="articles.html" class="back-link">← 返回文章列表</a>
+    <article id="article-content">
+      <p class="loading">加载中…</p>
+    </article>
+    <div class="article-footer-cta">
+      <p>🐻 小布布说：有法律问题，找陈律！</p>
+      <a href="contact.html" class="btn btn-primary">联系咨询</a>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-inner">
+      <p class="footer-logo">陈律 · 法律服务</p>
+      <p class="footer-mascot">🐻 小布布陪你走</p>
+      <p class="footer-copy">© 2026 陈律. 保留所有权利.</p>
+    </div>
+  </footer>
+
+  <script src="js/marked.min.js"></script>
+  <script src="js/articles.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    loadArticlePage('article-content');
+  </script>
+</body>
+</html>

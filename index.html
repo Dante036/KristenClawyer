@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>陈律 · 民事律师</title>
+  <meta name="description" content="陈律，专注民事领域法律服务，包括合同纠纷、婚姻家事、侵权损害等。" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <!-- 导航 -->
+  <nav class="navbar">
+    <div class="container nav-inner">
+      <a href="index.html" class="logo">陈律<span class="logo-sub"> · 法律服务</span></a>
+      <ul class="nav-links">
+        <li><a href="index.html" class="active">首页</a></li>
+        <li><a href="articles.html">文章</a></li>
+        <li><a href="contact.html">联系</a></li>
+      </ul>
+      <button class="hamburger" id="hamburger" aria-label="菜单">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <header class="hero">
+    <div class="container hero-inner">
+      <div class="hero-text">
+        <p class="hero-eyebrow">民事法律服务</p>
+        <h1>用专业守护<br/>您的权益</h1>
+        <p class="hero-desc">我是陈律，专注民事领域多年，致力于为当事人提供清晰、务实的法律支持。</p>
+        <div class="hero-actions">
+          <a href="contact.html" class="btn btn-primary">预约咨询</a>
+          <a href="articles.html" class="btn btn-ghost">阅读文章</a>
+        </div>
+      </div>
+      <div class="hero-mascot">
+        <div class="mascot-card">
+          <div class="mascot-emoji">🐻</div>
+          <p class="mascot-name">小布布</p>
+          <p class="mascot-tip">「法律不难，听我慢慢讲」</p>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- 业务范围 -->
+  <section class="services">
+    <div class="container">
+      <h2 class="section-title">业务范围</h2>
+      <p class="section-sub">民事纠纷，专注解决</p>
+      <div class="services-grid">
+        <div class="service-card">
+          <div class="service-icon">📋</div>
+          <h3>合同纠纷</h3>
+          <p>合同审查、违约责任、合同解除与撤销，保障您的交易安全。</p>
+        </div>
+        <div class="service-card">
+          <div class="service-icon">💍</div>
+          <h3>婚姻家事</h3>
+          <p>离婚诉讼、财产分割、子女抚养、遗产继承，守护家庭权益。</p>
+        </div>
+        <div class="service-card">
+          <div class="service-icon">⚖️</div>
+          <h3>侵权损害</h3>
+          <p>人身损害赔偿、财产损失、名誉侵权，依法追究侵权责任。</p>
+        </div>
+        <div class="service-card">
+          <div class="service-icon">🏠</div>
+          <h3>房产纠纷</h3>
+          <p>买卖纠纷、租赁争议、物权确认，维护您的不动产权益。</p>
+        </div>
+        <div class="service-card">
+          <div class="service-icon">💼</div>
+          <h3>劳动争议</h3>
+          <p>劳动仲裁、工伤赔偿、劳动合同纠纷，为劳动者发声。</p>
+        </div>
+        <div class="service-card">
+          <div class="service-icon">📝</div>
+          <h3>法律顾问</h3>
+          <p>日常法律咨询、文件起草、风险评估，做您身边的法律顾问。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 关于我 -->
+  <section class="about">
+    <div class="container about-inner">
+      <div class="about-text">
+        <h2>关于陈律</h2>
+        <p>执业多年，专注民事法律领域。相信法律的力量在于让普通人也能看懂、用得上。每一个案件背后都是真实的人和真实的困境，我会认真对待。</p>
+        <p>和小布布一起，把复杂的法律问题讲清楚，陪您走完每一步。</p>
+        <a href="contact.html" class="btn btn-primary">联系我</a>
+      </div>
+      <div class="about-stats">
+        <div class="stat">
+          <span class="stat-num">民事</span>
+          <span class="stat-label">专注领域</span>
+        </div>
+        <div class="stat">
+          <span class="stat-num">认真</span>
+          <span class="stat-label">对待每个案件</span>
+        </div>
+        <div class="stat">
+          <span class="stat-num">清晰</span>
+          <span class="stat-label">让法律看得懂</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 最新文章预览 -->
+  <section class="latest-articles">
+    <div class="container">
+      <h2 class="section-title">最新文章</h2>
+      <p class="section-sub">小布布说法，法律不难懂</p>
+      <div id="article-preview" class="articles-grid">
+        <!-- 由 JS 动态加载 -->
+      </div>
+      <div class="center-btn">
+        <a href="articles.html" class="btn btn-ghost">查看全部文章</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container footer-inner">
+      <p class="footer-logo">陈律 · 法律服务</p>
+      <p class="footer-mascot">🐻 小布布陪你走</p>
+      <p class="footer-copy">© 2026 陈律. 保留所有权利.</p>
+    </div>
+  </footer>
+
+  <script src="js/articles.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    // 首页加载最新3篇文章预览
+    loadArticlePreview('article-preview', 3);
+  </script>
+</body>
+</html>
