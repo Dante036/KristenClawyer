@@ -538,24 +538,20 @@ a { color: inherit; text-decoration: none; }
   color: var(--ink-muted);
   margin-top: 2px;
 }
-.qr-placeholder {
-  border: 2px dashed var(--border);
-  border-radius: 10px;
-  padding: 40px;
-  text-align: center;
+.qr-card {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 16px;
   margin-bottom: 24px;
-  color: var(--ink-muted);
-  font-size: 0.85rem;
-}
-.qr-hint {
-  font-size: 0.75rem;
-  margin-top: 6px;
-  color: #bbb;
+  box-shadow: 0 16px 40px rgba(44, 34, 28, 0.08);
 }
 .qr-image {
-  width: 180px;
-  height: 180px;
+  display: block;
+  width: min(100%, 360px);
+  height: auto;
   margin: 0 auto;
+  border-radius: 12px;
 }
 .contact-note {
   font-size: 0.82rem;
