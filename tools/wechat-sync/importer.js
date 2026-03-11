@@ -4,9 +4,10 @@ const os = require('os');
 const { spawnSync } = require('child_process');
 
 const REPO_ROOT = path.resolve(__dirname, '..', '..');
-const SKILL_ROOT = path.join(process.env.HOME || '', '.codex', 'skills', 'republish-wechat-article');
-const EXTRACTOR = path.join(SKILL_ROOT, 'scripts', 'extract_wechat_article.js');
-const DOWNLOADER = path.join(SKILL_ROOT, 'scripts', 'download_wechat_assets.js');
+const TOOL_ROOT = __dirname;
+const SCRIPTS_ROOT = path.join(TOOL_ROOT, 'scripts');
+const EXTRACTOR = path.join(SCRIPTS_ROOT, 'extract_wechat_article.js');
+const DOWNLOADER = path.join(SCRIPTS_ROOT, 'download_wechat_assets.js');
 const AVATAR = '<img src="images/avanta.jpg" alt="小布布头像" class="article-inline-avatar" />';
 const GIT_ASKPASS = path.join(__dirname, 'git-askpass.js');
 
@@ -490,7 +491,7 @@ function publishChangedFiles(options) {
 function checkEnvironment() {
   const candidates = [
     path.join(REPO_ROOT, 'node_modules', 'playwright'),
-    path.join(SKILL_ROOT, 'node_modules', 'playwright'),
+    path.join(TOOL_ROOT, 'node_modules', 'playwright'),
     '/tmp/pw-run/node_modules/playwright'
   ];
 
@@ -525,7 +526,7 @@ function checkEnvironment() {
 async function importWechatArticle(options) {
   const env = checkEnvironment();
   if (!env.extractor || !env.downloader) {
-    throw new Error('公众号同步脚本不存在，请检查 skill 安装。');
+    throw new Error(`公众号同步脚本不存在，请检查仓库内脚本是否完整：${EXTRACTOR} / ${DOWNLOADER}`);
   }
 
   const extractedJson = runNode(EXTRACTOR, [options.url]);

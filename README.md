@@ -43,6 +43,8 @@ excerpt: 一两句摘要
 
 给陈律用的本地小工具已经在仓库里：
 
+- 公众号抓取脚本现已内置在仓库 `tools/wechat-sync/scripts/`，不再依赖你本机 `~/.codex/skills/...` 路径
+
 - 双击运行：`start-wechat-sync-tool.command`
 - Windows 可双击运行：`start-wechat-sync-tool.bat`
 - 打开后访问：`http://127.0.0.1:4318/tool/`
