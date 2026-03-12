@@ -9,16 +9,36 @@ const SCRIPTS_ROOT = path.join(TOOL_ROOT, 'scripts');
 const EXTRACTOR = path.join(SCRIPTS_ROOT, 'extract_wechat_article.js');
 const DOWNLOADER = path.join(SCRIPTS_ROOT, 'download_wechat_assets.js');
 const AVATAR = '<img src="images/avanta.jpg" alt="小布布头像" class="article-inline-avatar" />';
-const GIT_ASKPASS = path.join(__dirname, 'git-askpass.js');
+function getGithubToken() {
+  return String(process.env.WECHAT_SYNC_GITHUB_TOKEN || process.env.GITHUB_TOKEN || '').trim();
+}
 
 function hasTokenAuth() {
-  return Boolean(process.env.WECHAT_SYNC_GITHUB_TOKEN || process.env.GITHUB_TOKEN);
+  return Boolean(getGithubToken());
+}
+
+function parseRepoSpec(value) {
+  const text = String(value || '')
+    .trim()
+    .replace(/^https:\/\/github\.com\//i, '')
+    .replace(/^git@github\.com:/i, '')
+    .replace(/\.git$/i, '');
+  const match = text.match(/^([^/]+)\/([^/]+)$/);
+  if (!match) {
+    return { valid: false, owner: '', repo: '', fullName: '' };
+  }
+  return {
+    valid: true,
+    owner: match[1],
+    repo: match[2],
+    fullName: `${match[1]}/${match[2]}`
+  };
 }
 
 function parseRemote(remote) {
   const text = String(remote || '').trim();
   if (!text) {
-    return { kind: 'none', raw: '' };
+    return { kind: 'none', raw: '', owner: '', repo: '', fullName: '' };
   }
 
   const githubScp = text.match(/^git@github\.com:([^/]+)\/(.+?)(?:\.git)?$/i);
@@ -28,6 +48,7 @@ function parseRemote(remote) {
       raw: text,
       owner: githubScp[1],
       repo: githubScp[2],
+      fullName: `${githubScp[1]}/${githubScp[2]}`,
       httpsUrl: `https://github.com/${githubScp[1]}/${githubScp[2]}.git`
     };
   }
@@ -39,6 +60,7 @@ function parseRemote(remote) {
       raw: text,
       owner: githubSshUrl[1],
       repo: githubSshUrl[2],
+      fullName: `${githubSshUrl[1]}/${githubSshUrl[2]}`,
       httpsUrl: `https://github.com/${githubSshUrl[1]}/${githubSshUrl[2]}.git`
     };
   }
@@ -50,77 +72,179 @@ function parseRemote(remote) {
       raw: text,
       owner: githubHttps[1],
       repo: githubHttps[2],
+      fullName: `${githubHttps[1]}/${githubHttps[2]}`,
       httpsUrl: `https://github.com/${githubHttps[1]}/${githubHttps[2]}.git`
     };
   }
 
   if (/^(git@|ssh:\/\/)/i.test(text)) {
-    return { kind: 'ssh', raw: text };
+    return { kind: 'ssh', raw: text, owner: '', repo: '', fullName: '' };
   }
 
   if (/^https?:\/\//i.test(text)) {
-    return { kind: 'https', raw: text, httpsUrl: text };
+    return { kind: 'https', raw: text, owner: '', repo: '', fullName: '', httpsUrl: text };
   }
 
-  return { kind: 'other', raw: text };
+  return { kind: 'other', raw: text, owner: '', repo: '', fullName: '' };
 }
 
-function resolveAuthMode(remote) {
-  const remoteInfo = parseRemote(remote);
-  const tokenEnabled = hasTokenAuth();
-  const tokenUsable = tokenEnabled && Boolean(remoteInfo.httpsUrl);
-
-  if (tokenUsable) {
-    return {
-      tokenEnabled,
-      tokenUsable,
-      authMode: 'token',
-      remoteInfo
-    };
-  }
-
-  if (remoteInfo.kind === 'github-ssh' || remoteInfo.kind === 'ssh') {
-    return {
-      tokenEnabled,
-      tokenUsable,
-      authMode: 'system-ssh',
-      remoteInfo
-    };
-  }
-
-  return {
-    tokenEnabled,
-    tokenUsable,
-    authMode: 'system',
-    remoteInfo
-  };
-}
-
-function baseGitEnv() {
-  const env = { ...process.env };
-  const token = env.WECHAT_SYNC_GITHUB_TOKEN || env.GITHUB_TOKEN || '';
-  if (token) {
-    env.GIT_TERMINAL_PROMPT = '0';
-    env.GIT_ASKPASS = GIT_ASKPASS;
-    env.WECHAT_SYNC_GIT_USERNAME = env.WECHAT_SYNC_GIT_USERNAME || 'x-access-token';
-    env.WECHAT_SYNC_GIT_PASSWORD = token;
-  }
-  return env;
-}
-
-function runGit(args, options = {}) {
+function runGitProbe(args) {
   const result = spawnSync('git', args, {
     cwd: REPO_ROOT,
     encoding: 'utf8',
-    maxBuffer: 20 * 1024 * 1024,
-    env: baseGitEnv(),
-    ...options
+    maxBuffer: 20 * 1024 * 1024
   });
-  if (result.status !== 0) {
-    const message = (result.stderr || result.stdout || `Failed to run git ${args.join(' ')}`).trim();
-    throw new Error(message);
+  return {
+    ok: !result.error && result.status === 0,
+    stdout: (result.stdout || '').trim(),
+    stderr: (result.stderr || '').trim(),
+    error: result.error ? result.error.message : ''
+  };
+}
+
+function getLocalGitStatus() {
+  const gitVersion = runGitProbe(['--version']);
+  if (!gitVersion.ok) {
+    return {
+      available: false,
+      repo: false,
+      branch: '',
+      remote: '',
+      remoteKind: 'none',
+      clean: false,
+      pendingCount: 0,
+      pending: [],
+      error: '当前机器未安装 Git'
+    };
   }
-  return (result.stdout || '').trim();
+
+  const repoCheck = runGitProbe(['rev-parse', '--is-inside-work-tree']);
+  if (!repoCheck.ok || repoCheck.stdout !== 'true') {
+    return {
+      available: true,
+      repo: false,
+      branch: '',
+      remote: '',
+      remoteKind: 'none',
+      clean: false,
+      pendingCount: 0,
+      pending: [],
+      error: '当前目录不是 Git 仓库'
+    };
+  }
+
+  const branch = runGitProbe(['rev-parse', '--abbrev-ref', 'HEAD']).stdout;
+  const remoteResult = runGitProbe(['remote', 'get-url', 'origin']);
+  const remote = remoteResult.ok ? remoteResult.stdout : '';
+  const porcelainResult = runGitProbe(['status', '--porcelain']);
+  const pending = porcelainResult.ok && porcelainResult.stdout
+    ? porcelainResult.stdout.split(/\r?\n/).filter(Boolean)
+    : [];
+  const remoteInfo = parseRemote(remote);
+
+  return {
+    available: true,
+    repo: true,
+    branch,
+    remote,
+    remoteKind: remoteInfo.kind,
+    clean: pending.length === 0,
+    pendingCount: pending.length,
+    pending,
+    error: ''
+  };
+}
+
+function getConfiguredPublishTarget(gitStatus = getLocalGitStatus()) {
+  const token = getGithubToken();
+  const configuredRepo = parseRepoSpec(process.env.WECHAT_SYNC_GITHUB_REPO || '');
+  const owner = configuredRepo.valid ? configuredRepo.owner : (gitStatus.repo ? parseRemote(gitStatus.remote).owner : '');
+  const repo = configuredRepo.valid ? configuredRepo.repo : (gitStatus.repo ? parseRemote(gitStatus.remote).repo : '');
+  const repoSource = configuredRepo.valid ? 'env' : (owner && repo ? 'git' : 'missing');
+
+  let branch = String(process.env.WECHAT_SYNC_GITHUB_BRANCH || '').trim();
+  let branchSource = branch ? 'env' : 'missing';
+  if (!branch && gitStatus.repo && gitStatus.branch) {
+    branch = gitStatus.branch;
+    branchSource = 'git';
+  }
+
+  let error = '';
+  if (!token) {
+    error = '未设置 WECHAT_SYNC_GITHUB_TOKEN 或 GITHUB_TOKEN';
+  } else if (!owner || !repo) {
+    error = '未设置 WECHAT_SYNC_GITHUB_REPO，且当前目录也无法从 Git remote 推断仓库';
+  }
+
+  return {
+    mode: 'github-api',
+    ready: Boolean(token && owner && repo),
+    tokenEnabled: Boolean(token),
+    owner,
+    repo,
+    repoFullName: owner && repo ? `${owner}/${repo}` : '',
+    repoSource,
+    branch,
+    branchSource,
+    error
+  };
+}
+
+async function githubRequest(token, method, endpoint, body) {
+  const response = await fetch(`https://api.github.com${endpoint}`, {
+    method,
+    headers: {
+      Accept: 'application/vnd.github+json',
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      'User-Agent': 'wechat-sync-tool',
+      'X-GitHub-Api-Version': '2022-11-28'
+    },
+    body: body ? JSON.stringify(body) : undefined
+  });
+
+  const raw = await response.text();
+  let data = raw ? raw : null;
+  try {
+    data = raw ? JSON.parse(raw) : null;
+  } catch (error) {
+  }
+
+  if (!response.ok) {
+    const message = data && typeof data === 'object' && data.message ? data.message : response.statusText;
+    throw new Error(`GitHub API 请求失败（${response.status}）：${message}`);
+  }
+
+  return data;
+}
+
+async function resolvePublishTarget() {
+  const gitStatus = getLocalGitStatus();
+  const publish = getConfiguredPublishTarget(gitStatus);
+  const token = getGithubToken();
+
+  if (!token) {
+    throw new Error('未设置 WECHAT_SYNC_GITHUB_TOKEN 或 GITHUB_TOKEN。');
+  }
+  if (!publish.repoFullName) {
+    throw new Error('未设置 WECHAT_SYNC_GITHUB_REPO，且当前目录也无法从 Git remote 推断仓库。');
+  }
+
+  let branch = publish.branch;
+  let branchSource = publish.branchSource;
+  if (!branch) {
+    const repoInfo = await githubRequest(token, 'GET', `/repos/${publish.owner}/${publish.repo}`);
+    branch = repoInfo.default_branch || 'main';
+    branchSource = 'repo-default';
+  }
+
+  return {
+    ...publish,
+    token,
+    branch,
+    branchSource,
+    ready: true
+  };
 }
 
 function runNode(scriptPath, args) {
@@ -422,26 +546,17 @@ function updateArticlesRegistry(entry) {
 }
 
 function getGitStatus() {
-  const branch = runGit(['rev-parse', '--abbrev-ref', 'HEAD']);
-  let remote = '';
-  try {
-    remote = runGit(['remote', 'get-url', 'origin']);
-  } catch (error) {
-    remote = '';
-  }
-  const porcelain = runGit(['status', '--porcelain']);
-  const pending = porcelain ? porcelain.split(/\r?\n/).filter(Boolean) : [];
-  const auth = resolveAuthMode(remote);
+  const git = getLocalGitStatus();
+  const publish = getConfiguredPublishTarget(git);
   return {
-    branch,
-    remote,
-    remoteKind: auth.remoteInfo.kind,
-    clean: pending.length === 0,
-    pendingCount: pending.length,
-    pending,
-    authMode: auth.authMode,
-    tokenEnabled: auth.tokenEnabled,
-    tokenUsable: auth.tokenUsable
+    ...git,
+    authMode: publish.ready ? 'token-api' : 'unavailable',
+    tokenEnabled: publish.tokenEnabled,
+    tokenUsable: publish.ready,
+    publishRepo: publish.repoFullName,
+    publishBranch: publish.branch,
+    publishBranchSource: publish.branchSource,
+    publishError: publish.error
   };
 }
 
@@ -453,38 +568,94 @@ function toRepoRelative(filePath) {
   return path.relative(REPO_ROOT, absolute);
 }
 
-function publishChangedFiles(options) {
+async function createGithubBlob(target, relativePath) {
+  const absolutePath = path.join(REPO_ROOT, relativePath);
+  if (!fs.existsSync(absolutePath)) {
+    throw new Error(`准备发布的文件不存在：${absolutePath}`);
+  }
+  const bytes = fs.readFileSync(absolutePath);
+  const blob = await githubRequest(
+    target.token,
+    'POST',
+    `/repos/${target.owner}/${target.repo}/git/blobs`,
+    {
+      content: bytes.toString('base64'),
+      encoding: 'base64'
+    }
+  );
+
+  return {
+    path: relativePath.replace(/\\/g, '/'),
+    mode: '100644',
+    type: 'blob',
+    sha: blob.sha
+  };
+}
+
+async function publishChangedFiles(options) {
   const title = String(options.title || 'new article').trim();
   const changedFiles = Array.isArray(options.changedFiles) ? [...new Set(options.changedFiles)] : [];
   if (!changedFiles.length) {
-    throw new Error('没有可提交的文件。');
+    throw new Error('没有可发布的文件。');
   }
 
-  const git = getGitStatus();
+  const target = await resolvePublishTarget();
   const relativeFiles = changedFiles.map(toRepoRelative);
-  runGit(['add', '--', ...relativeFiles]);
+  const branchInfo = await githubRequest(
+    target.token,
+    'GET',
+    `/repos/${target.owner}/${target.repo}/branches/${encodeURIComponent(target.branch)}`
+  );
 
-  const staged = runGit(['diff', '--cached', '--name-only']);
-  if (!staged.trim()) {
-    throw new Error('没有检测到新的已暂存改动。');
+  const baseCommitSha = branchInfo.commit.sha;
+  const baseTreeSha = branchInfo.commit.commit.tree.sha;
+  const treeEntries = [];
+  for (const relativePath of relativeFiles) {
+    treeEntries.push(await createGithubBlob(target, relativePath));
   }
+
+  const tree = await githubRequest(
+    target.token,
+    'POST',
+    `/repos/${target.owner}/${target.repo}/git/trees`,
+    {
+      base_tree: baseTreeSha,
+      tree: treeEntries
+    }
+  );
 
   const commitMessage = `publish: ${title.replace(/[\r\n]+/g, ' ').replace(/\s+/g, ' ').trim()}`;
-  runGit(['commit', '-m', commitMessage]);
-  const pushArgs = ['push'];
-  if (git.authMode === 'token' && git.remote) {
-    const remoteInfo = parseRemote(git.remote);
-    pushArgs.push(remoteInfo.httpsUrl, `HEAD:${git.branch}`);
-  }
-  const pushOutput = runGit(pushArgs);
-  const commitHash = runGit(['rev-parse', '--short', 'HEAD']);
+  const commit = await githubRequest(
+    target.token,
+    'POST',
+    `/repos/${target.owner}/${target.repo}/git/commits`,
+    {
+      message: commitMessage,
+      tree: tree.sha,
+      parents: [baseCommitSha]
+    }
+  );
+
+  await githubRequest(
+    target.token,
+    'PATCH',
+    `/repos/${target.owner}/${target.repo}/git/refs/heads/${encodeURIComponent(target.branch)}`,
+    {
+      sha: commit.sha,
+      force: false
+    }
+  );
 
   return {
     commitMessage,
-    commitHash,
-    pushOutput,
+    commitHash: commit.sha.slice(0, 7),
+    commitSha: commit.sha,
+    commitUrl: `https://github.com/${target.owner}/${target.repo}/commit/${commit.sha}`,
     files: relativeFiles,
-    authMode: git.authMode
+    authMode: 'token-api',
+    branch: target.branch,
+    branchSource: target.branchSource,
+    repoFullName: target.repoFullName
   };
 }
 
@@ -495,23 +666,8 @@ function checkEnvironment() {
     '/tmp/pw-run/node_modules/playwright'
   ];
 
-  let git;
-  try {
-    git = getGitStatus();
-  } catch (error) {
-    git = {
-      branch: '',
-      remote: '',
-      remoteKind: 'unknown',
-      clean: false,
-      pendingCount: 0,
-      pending: [],
-      authMode: 'unavailable',
-      tokenEnabled: hasTokenAuth(),
-      tokenUsable: false,
-      error: error.message || String(error)
-    };
-  }
+  const git = getLocalGitStatus();
+  const publish = getConfiguredPublishTarget(git);
 
   return {
     repoRoot: REPO_ROOT,
@@ -519,7 +675,8 @@ function checkEnvironment() {
     downloader: fs.existsSync(DOWNLOADER),
     playwrightFound: candidates.some((item) => fs.existsSync(item)),
     playwrightCandidates: candidates,
-    git
+    git,
+    publish
   };
 }
 

@@ -80,7 +80,7 @@ const server = http.createServer(async (req, res) => {
   if (req.method === 'POST' && url.pathname === '/api/publish') {
     try {
       const body = await readBody(req);
-      const result = publishChangedFiles(body);
+      const result = await publishChangedFiles(body);
       sendJson(res, 200, { ok: true, result });
     } catch (error) {
       sendJson(res, 500, { ok: false, error: error.message || String(error) });

@@ -62,7 +62,7 @@ npm install playwright
 cp wechat-sync.local.env.example wechat-sync.local.env
 ```
 
-然后把 `wechat-sync.local.env` 里的 `WECHAT_SYNC_GITHUB_TOKEN` 改成你自己的 GitHub PAT。这个文件已经被忽略，不会提交到仓库。
+然后把 `wechat-sync.local.env` 里的 `WECHAT_SYNC_GITHUB_TOKEN` 改成你自己的 GitHub PAT，再确认 `WECHAT_SYNC_GITHUB_REPO` 指向目标仓库。这个文件已经被忽略，不会提交到仓库。
 
 也可以直接用命令行导入：
 
@@ -70,11 +70,11 @@ cp wechat-sync.local.env.example wechat-sync.local.env
 node tools/wechat-sync/import_wechat_article.js --url "https://mp.weixin.qq.com/s/..."
 ```
 
-如果要在网页里直接 `git commit` + `git push`：
+如果要在网页里直接发布到 GitHub：
 
-- 默认优先使用你电脑里已经配置好的 Git 登录态
-- 如果 `wechat-sync.local.env` 里有 `WECHAT_SYNC_GITHUB_TOKEN`，双击启动时会自动加载
-- 即使仓库当前 `origin` 是 SSH，工具也会在推送时临时改走 HTTPS，不会改写你的远程配置
+- 现在走的是 **GitHub API 发布**，不依赖本地 `git commit` / `git push`
+- 必填：`WECHAT_SYNC_GITHUB_TOKEN`、`WECHAT_SYNC_GITHUB_REPO`
+- 可选：`WECHAT_SYNC_GITHUB_BRANCH`；如果不填，会优先取当前 Git 分支，再不行就取仓库默认分支
 
 macOS：
 
